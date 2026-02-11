@@ -23,6 +23,10 @@
                       +------------+       +---------------+
                          (public)              (private)
 
+
+![alt text](project-images/diagram.png)
+
+
 The architecture uses:
 
 - A custom VPC with public and private subnets
@@ -116,6 +120,7 @@ ssh-keygen -t rsa -b 4096 -f ~/.ssh/ritika-ec2-key
 ```
 Terraform registers the public key in AWS
 
+![alt text](project-images/create-keypair-ssh-keygen.png)
 
 3. SSM Parameter for RDS Password
 
@@ -131,6 +136,10 @@ aws ssm put-parameter \
 ```
 Terraform retrieves it dynamically during deployment.
 
+![alt text](project-images/create-ssm-parameter-db-pass-from-cli.png)
+
+![alt text](project-images/parameter-db-pass.png)
+
 4. Remote Backend and state locking (S3 + DynamoDB)
 
 Terraform state is stored remotely in an S3 bucket.
@@ -144,8 +153,11 @@ aws s3api create-bucket \
   --bucket terraform-state-bucket-120226 \
   --region us-east-2 \
   --create-bucket-configuration LocationConstraint=us-east-2
+
 ```
 Note: S3 requires a LocationConstraint parameter for regions other than us-east-1. Without it, the API throws IllegalLocationConstraintException.
+
+![alt text](project-images/s3-bucket-for-state-lock.png)
 
 ```
 aws dynamodb create-table \
@@ -176,6 +188,18 @@ terraform plan
 terraform apply -auto-approve
 ```
 
+![alt text](project-images/dynamodb-lock-gen.png)
+
+![alt text](project-images/vpc.png)
+
+![alt text](project-images/ec2-ssh-sg.png)
+
+![alt text](project-images/ec2-instance.png)
+
+![alt text](project-images/rds-sg.png)
+
+![alt text](project-images/rds-db.png)
+
 ### Validation & Testing
 
 SSH into Created EC2:
@@ -192,6 +216,8 @@ cat /home/ec2-user/mysql-installed.log
 which mysql
 mysql --version
 ```
+
+![alt text](project-images/verify-mysql-installation.png)
 
 Connect to RDS
 
@@ -216,6 +242,8 @@ INSERT INTO hello VALUES (1, 'Hello from Terraform RDS!');
 SELECT * FROM hello;
 exit
 ```
+
+![alt text](project-images/create-db.png)
 
 Clean Up:
 
