@@ -5,6 +5,9 @@
 ### Architecture Overview:
 
 
+![alt text](project-images/tf-vpc-ec2-rds-setup.drawio.png)
+
+
                           +------------------------+
                           |      AWS Region        |
                           +------------------------+
@@ -144,7 +147,9 @@ Terraform retrieves it dynamically during deployment.
 
 ![alt text](project-images/parameter-db-pass.png)
 
-4. Remote Backend and state locking (S3 + DynamoDB)
+4. Create an S3 Bucket + DynamoDB Table for Terraform Backend
+
+Using a remote backend is crucial for collaborative, consistent, and recoverable infrastructure. It stores your Terraform state file securely and handles locking to avoid simultaneous changes.
 
 Create the S3 bucket and DynamoDB table before terraform init.
 
@@ -160,6 +165,7 @@ aws s3api create-bucket \
 Note: S3 requires a LocationConstraint parameter for regions other than us-east-1. Without it, the API throws IllegalLocationConstraintException.
 
 ![alt text](project-images/s3-bucket-for-state-lock.png)
+
 
 ```
 aws dynamodb create-table \
@@ -225,6 +231,13 @@ Connect to RDS
 
 ```
 mysql -h <rds_endpoint> -u admin -p
+```
+Enter the db password you stored in SSM when prompted. If you see the MySQL CLI, you’re in!
+
+Then you’ll get the mysql> prompt, run below commands:
+
+```
+mysql>
 ```
 
 Database Test:
