@@ -24,9 +24,6 @@
                          (public)              (private)
 
 
-![alt text](project-images/diagram.png)
-
-
 The architecture uses:
 
 - A custom VPC with public and private subnets
@@ -39,7 +36,7 @@ The architecture uses:
 
 - AWS SSM Parameter Store for secure secret management
 
-- (Optional) Remote backend (S3) for safe and team-ready state handling
+- State locking with S3 and DynamoDB
 
 ### Why Terraform Modules
 
@@ -67,9 +64,11 @@ Instead of writing everything in a single Terraform file, I split the infrastruc
 ```
 terraform-vpc-ec2-rds-setup/
 ├── main.tf
+├── backend.tf
+├── variables.tf
 ├── outputs.tf
 ├── providers.tf
-├── terraform.tfvars (optional)
+├── terraform.tfvars (goes in .gitignore)
 └── modules/
 ├── vpc/
 │ ├── main.tf
@@ -90,7 +89,14 @@ terraform-vpc-ec2-rds-setup/
 
 Before running terraform apply, make sure the following setup is completed.
 
-1. AWS CLI Configuration
+1. Create EC2 Instance (Ubuntu 24.04 - t2.micro). Login via ssh and run the script to Install Terraform and AWS CLI V2 
+
+```
+sudo chmod +x install-tf-and-aws-cli2.sh
+./ install-tf-and-aws-cli2.sh
+```
+
+2. AWS CLI Configuration
 
 This project uses AWS CLI authentication via access keys.
 
@@ -109,7 +115,7 @@ AWS Secret Access Key
 ```
 The configured IAM user must have permissions to create VPC, EC2, RDS, SSM parameters, S3 backend resources, and DynamoDB (if used for locking).
 
-2. SSH Key Pair (EC2 Access)
+3. SSH Key Pair (EC2 Access)
 
 An SSH key pair is required to access the EC2 instance.
 
@@ -122,11 +128,11 @@ Terraform registers the public key in AWS
 
 ![alt text](project-images/create-keypair-ssh-keygen.png)
 
-3. SSM Parameter for RDS Password
+4. SSM Parameter for RDS Password
 
 The RDS password is stored securely in AWS Systems Manager Parameter Store.
 
-Create it before running Terraform:
+Create it before running terraform init:
 
 ```
 aws ssm put-parameter \
@@ -136,13 +142,9 @@ aws ssm put-parameter \
 ```
 Terraform retrieves it dynamically during deployment.
 
-![alt text](project-images/create-ssm-parameter-db-pass-from-cli.png)
-
 ![alt text](project-images/parameter-db-pass.png)
 
 4. Remote Backend and state locking (S3 + DynamoDB)
-
-Terraform state is stored remotely in an S3 bucket.
 
 Create the S3 bucket and DynamoDB table before terraform init.
 
